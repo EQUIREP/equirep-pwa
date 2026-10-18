@@ -1,42 +1,30 @@
-
 <!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#b00020">
-  <title>EQUIREP - Inventario privado</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 900px;
-      margin: 30px auto;
-      padding: 0 16px;
-      color: #222;
-    }
-    h1 { color: #b00020; }
-    .aviso {
-      padding: 16px;
-      background: #f2f2f2;
-      border-radius: 8px;
-      line-height: 1.5;
-    }
-  </style>
-</head>
-<body>
-  <h1>EQUIREP - Inventario privado</h1>
-  <p>Consulta interna de productos y existencias.</p>
-
-  <div class="aviso">
-    <strong>Versión inicial</strong>
-    <p>
-      Estamos preparando la aplicación instalable y su funcionamiento
-      sin conexión.
-    </p>
-    <p>
-      El inventario y los precios comerciales todavía no están conectados
-      en esta versión.
-    </p>
-  </div>
-</body>
-</html>
+<html lang="es"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#b00020"><link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icono-192.png"><title>EQUIREP - Inventario privado</title>
+<style>
+body{font-family:Arial,sans-serif;max-width:900px;margin:24px auto;padding:0 16px;color:#222}
+h1{color:#b00020;font-size:clamp(1.6rem,5vw,2.2rem)}.panel,.estado{padding:16px;background:#f2f2f2;border-radius:10px;line-height:1.5;margin:16px 0}
+button{background:#b00020;color:white;border:0;border-radius:8px;padding:12px 16px;font-size:1rem}
+.nota{color:#555;font-size:.92rem}
+</style></head><body>
+<h1>EQUIREP - Inventario privado</h1><p>Consulta interna de productos y existencias.</p>
+<div class="panel"><strong>Aplicación instalable — estructura inicial</strong>
+<p>Después de cargar esta página una primera vez con internet, los archivos básicos podrán guardarse en el dispositivo para volver a abrir la página sin conexión.</p>
+<p><strong>El inventario y los precios todavía no están conectados en esta versión.</strong></p></div>
+<div id="estado" class="estado" role="status" aria-live="polite">Comprobando funcionamiento sin conexión…</div>
+<button id="instalar" hidden>Instalar aplicación</button>
+<p class="nota">No publiques claves, contraseñas, tokens ni datos comerciales en este repositorio público.</p>
+<script>
+const estado=document.getElementById('estado');
+if('serviceWorker' in navigator){
+ window.addEventListener('load',async()=>{try{
+ await navigator.serviceWorker.register('./service-worker.js');
+ estado.textContent=navigator.onLine?'Archivos básicos preparados para uso sin conexión. El inventario aún no está conectado.':'Sin conexión: página básica guardada. El inventario aún no está conectado.';
+ }catch(e){estado.textContent='No se pudo activar el modo sin conexión. Conéctate a internet e inténtalo de nuevo.';}});
+}
+let instalacionPendiente;const boton=document.getElementById('instalar');
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();instalacionPendiente=e;boton.hidden=false;});
+boton.addEventListener('click',async()=>{if(!instalacionPendiente)return;instalacionPendiente.prompt();await instalacionPendiente.userChoice;instalacionPendiente=null;boton.hidden=true;});
+</script></body></html>
