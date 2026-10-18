@@ -1,30 +1,376 @@
 <!DOCTYPE html>
-<html lang="es"><head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#b00020"><link rel="manifest" href="./manifest.json">
-<link rel="apple-touch-icon" href="./icono-192.png"><title>EQUIREP - Inventario privado</title>
-<style>
-body{font-family:Arial,sans-serif;max-width:900px;margin:24px auto;padding:0 16px;color:#222}
-h1{color:#b00020;font-size:clamp(1.6rem,5vw,2.2rem)}.panel,.estado{padding:16px;background:#f2f2f2;border-radius:10px;line-height:1.5;margin:16px 0}
-button{background:#b00020;color:white;border:0;border-radius:8px;padding:12px 16px;font-size:1rem}
-.nota{color:#555;font-size:.92rem}
-</style></head><body>
-<h1>EQUIREP - Inventario privado</h1><p>Consulta interna de productos y existencias.</p>
-<div class="panel"><strong>Aplicación instalable — estructura inicial</strong>
-<p>Después de cargar esta página una primera vez con internet, los archivos básicos podrán guardarse en el dispositivo para volver a abrir la página sin conexión.</p>
-<p><strong>El inventario y los precios todavía no están conectados en esta versión.</strong></p></div>
-<div id="estado" class="estado" role="status" aria-live="polite">Comprobando funcionamiento sin conexión…</div>
-<button id="instalar" hidden>Instalar aplicación</button>
-<p class="nota">No publiques claves, contraseñas, tokens ni datos comerciales en este repositorio público.</p>
-<script>
-const estado=document.getElementById('estado');
-if('serviceWorker' in navigator){
- window.addEventListener('load',async()=>{try{
- await navigator.serviceWorker.register('./service-worker.js');
- estado.textContent=navigator.onLine?'Archivos básicos preparados para uso sin conexión. El inventario aún no está conectado.':'Sin conexión: página básica guardada. El inventario aún no está conectado.';
- }catch(e){estado.textContent='No se pudo activar el modo sin conexión. Conéctate a internet e inténtalo de nuevo.';}});
-}
-let instalacionPendiente;const boton=document.getElementById('instalar');
-window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();instalacionPendiente=e;boton.hidden=false;});
-boton.addEventListener('click',async()=>{if(!instalacionPendiente)return;instalacionPendiente.prompt();await instalacionPendiente.userChoice;instalacionPendiente=null;boton.hidden=true;});
-</script></body></html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#b00020">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="apple-touch-icon" href="./icono-192.png">
+  <title>EQUIREP - Inventario privado</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1000px;
+      margin: 24px auto;
+      padding: 0 16px;
+      color: #222;
+      background: #fff;
+    }
+    h1, h2 { color: #b00020; }
+    input, button {
+      font: inherit;
+      padding: 12px;
+      border-radius: 8px;
+    }
+    input {
+      width: 100%;
+      border: 1px solid #bbb;
+      margin: 6px 0 14px;
+    }
+    button {
+      border: 0;
+      background: #b00020;
+      color: white;
+      cursor: pointer;
+      margin: 4px 4px 4px 0;
+    }
+    button:disabled { opacity: .6; cursor: wait; }
+    .panel, .estado, .producto {
+      padding: 16px;
+      margin: 16px 0;
+      border-radius: 10px;
+      background: #f4f4f4;
+      overflow-wrap: anywhere;
+    }
+    .producto {
+      background: #fff;
+      border: 1px solid #ddd;
+    }
+    .producto h3 { margin-top: 0; }
+    .precios {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .precio {
+      padding: 12px;
+      background: #f5f5f5;
+      border-radius: 8px;
+      flex: 1;
+      min-width: 190px;
+    }
+    .secundario { color: #555; margin-top: 8px; }
+    .oculto { display: none !important; }
+    .acciones { display: flex; flex-wrap: wrap; gap: 8px; }
+    .nota { color: #555; font-size: .9rem; }
+  </style>
+</head>
+<body>
+  <h1>EQUIREP - Inventario privado</h1>
+  <p>Consulta de productos, existencias y precios comerciales.</p>
+
+  <section id="login" class="panel">
+    <h2>Acceso privado</h2>
+    <p>Solo está autorizada la cuenta de EQUIREP indicada abajo.</p>
+    <form id="formLogin">
+      <label for="correo">Cuenta autorizada</label>
+      <input id="correo" type="email"
+        value="equirepdelacosta@gmail.com" readonly>
+      <label for="clave">Contraseña de esta cuenta de Firebase</label>
+      <input id="clave" type="password"
+        autocomplete="current-password" required>
+      <button id="entrar" type="submit">Iniciar sesión</button>
+    </form>
+    <p id="estadoLogin" class="nota" role="status"></p>
+  </section>
+
+  <section id="inventario" class="oculto">
+    <div class="acciones">
+      <button id="actualizar">Actualizar inventario</button>
+      <button id="salir">Cerrar sesión</button>
+    </div>
+    <div id="estado" class="estado" role="status" aria-live="polite">
+      Preparando inventario...
+    </div>
+    <label for="busqueda">Buscar por código, nombre o referencia</label>
+    <input id="busqueda" type="search"
+      placeholder="Escribe el código, nombre o referencia del producto">
+    <div id="resultados"></div>
+  </section>
+
+  <p class="nota">
+    El acceso a los productos se comprueba mediante Firebase.
+    No compartas este dispositivo si contiene precios comerciales guardados.
+  </p>
+
+  <script src="./config.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+
+  <script>
+    const CUENTA_AUTORIZADA = "equirepdelacosta@gmail.com";
+    const login = document.getElementById("login");
+    const seccionInventario = document.getElementById("inventario");
+    const estadoLogin = document.getElementById("estadoLogin");
+    const estado = document.getElementById("estado");
+    const resultados = document.getElementById("resultados");
+    const busqueda = document.getElementById("busqueda");
+    const botonEntrar = document.getElementById("entrar");
+    let productos = [];
+    let resultadosActuales = [];
+
+    if (!window.EQUIREP_CONFIG ||
+        !window.EQUIREP_CONFIG.firebase) {
+      estadoLogin.textContent =
+        "No se encontró la configuración de Firebase.";
+      throw new Error("Falta la configuración de Firebase.");
+    }
+
+    firebase.initializeApp(window.EQUIREP_CONFIG.firebase);
+
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // Activa la caché local persistente cuando el navegador lo permite.
+    const persistenciaLista = db.enablePersistence({
+      synchronizeTabs: true
+    }).catch(function (error) {
+      console.warn("Persistencia local:", error.code || error.message);
+    });
+
+    function normalizar(valor) {
+      return String(valor || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+    }
+
+    function escaparHTML(valor) {
+      return String(valor == null ? "" : valor).replace(
+        /[&<>"']/g,
+        function (caracter) {
+          return {
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+          }[caracter];
+        }
+      );
+    }
+
+    async function leerInventario() {
+      await persistenciaLista;
+      let instantanea;
+      let usaCache = !navigator.onLine;
+
+      if (usaCache) {
+        instantanea = await db.collection("productos")
+          .get({ source: "cache" });
+      } else {
+        try {
+          instantanea = await db.collection("productos").get();
+        } catch (error) {
+          // Si falla la red, intenta recuperar la última copia local.
+          instantanea = await db.collection("productos")
+            .get({ source: "cache" });
+          usaCache = true;
+        }
+      }
+
+      const lista = [];
+
+      instantanea.forEach(function (documento) {
+        const datos = documento.data();
+        if (Array.isArray(datos.items)) {
+          datos.items.forEach(function (producto) {
+            lista.push(producto);
+          });
+        }
+      });
+
+      if (lista.length === 0) {
+        throw new Error(
+          "No hay productos guardados en esta copia del dispositivo. " +
+          "Conéctate a internet y actualiza el inventario."
+        );
+      }
+
+      productos = lista;
+      estado.textContent =
+        "Inventario cargado: " + productos.length +
+        " productos. " +
+        (usaCache
+          ? "Usando la copia guardada en este dispositivo."
+          : "Consulta actualizada desde Firebase.");
+
+      mostrarResultados();
+    }
+
+    function mostrarResultados() {
+      const termino = normalizar(busqueda.value.trim());
+
+      resultadosActuales = productos.filter(function (producto) {
+        return [
+          producto.codigo,
+          producto.nombre,
+          producto.referencia,
+          producto.descripcion
+        ].some(function (campo) {
+          return normalizar(campo).includes(termino);
+        });
+      });
+
+      const limite = 100;
+      const visibles = resultadosActuales.slice(0, limite);
+
+      resultados.innerHTML = visibles.map(function (producto, indice) {
+        return `
+          <article class="producto">
+            <h3>${escaparHTML(producto.codigo)} - ${escaparHTML(producto.nombre)}</h3>
+            <div>Referencia: ${escaparHTML(producto.referencia)}</div>
+            <div>Disponible: ${escaparHTML(producto.disponible)}
+              ${escaparHTML(producto.unidad)}</div>
+            <div class="precios">
+              <div class="precio">
+                <div>Precio 1</div>
+                <strong>${escaparHTML(producto.precio1)}</strong>
+                <button data-copiar="${indice}" data-campo="precio1">
+                  Copiar precio 1
+                </button>
+              </div>
+              <div class="precio">
+                <div>Precio 2</div>
+                <strong>${escaparHTML(producto.precio2)}</strong>
+                <button data-copiar="${indice}" data-campo="precio2">
+                  Copiar precio 2
+                </button>
+              </div>
+            </div>
+            <div class="secundario">${escaparHTML(producto.descripcion)}</div>
+          </article>`;
+      }).join("");
+
+      if (resultadosActuales.length === 0) {
+        resultados.innerHTML =
+          '<div class="panel">No se encontraron productos.</div>';
+      } else if (resultadosActuales.length > limite) {
+        resultados.insertAdjacentHTML(
+          "beforeend",
+          '<p class="nota">Se muestran los primeros ' + limite +
+          ' resultados de ' + resultadosActuales.length +
+          '. Escribe más caracteres para afinar la búsqueda.</p>'
+        );
+      }
+    }
+
+    document.getElementById("formLogin").addEventListener(
+      "submit", async function (evento) {
+        evento.preventDefault();
+        botonEntrar.disabled = true;
+        estadoLogin.textContent = "Validando acceso...";
+
+        try {
+          await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+          await auth.signInWithEmailAndPassword(
+            CUENTA_AUTORIZADA,
+            document.getElementById("clave").value
+          );
+          document.getElementById("clave").value = "";
+        } catch (error) {
+          estadoLogin.textContent =
+            "No se pudo iniciar sesión. Verifica la contraseña de " +
+            "Firebase y vuelve a intentarlo.";
+        } finally {
+          botonEntrar.disabled = false;
+        }
+      }
+    );
+
+    auth.onAuthStateChanged(async function (usuario) {
+      if (!usuario) {
+        login.classList.remove("oculto");
+        seccionInventario.classList.add("oculto");
+        return;
+      }
+
+      if ((usuario.email || "").toLowerCase() !== CUENTA_AUTORIZADA) {
+        await auth.signOut();
+        estadoLogin.textContent =
+          "Acceso denegado: esta cuenta no está autorizada.";
+        return;
+      }
+
+      login.classList.add("oculto");
+      seccionInventario.classList.remove("oculto");
+      estado.textContent = "Cargando inventario...";
+      try {
+        await leerInventario();
+      } catch (error) {
+        estado.textContent = error.message ||
+          "No se pudo cargar el inventario.";
+      }
+    });
+
+    busqueda.addEventListener("input", mostrarResultados);
+
+    resultados.addEventListener("click", async function (evento) {
+      const boton = evento.target.closest("[data-copiar]");
+      if (!boton) return;
+
+      const producto = resultadosActuales[Number(boton.dataset.copiar)];
+      if (!producto) return;
+
+      try {
+        await navigator.clipboard.writeText(
+          String(producto[boton.dataset.campo] || "")
+        );
+        estado.textContent = "Precio copiado.";
+      } catch (error) {
+        estado.textContent =
+          "No se pudo copiar automáticamente. Selecciona el precio.";
+      }
+    });
+
+    document.getElementById("actualizar").addEventListener(
+      "click", async function () {
+        estado.textContent = "Actualizando inventario...";
+        try {
+          await leerInventario();
+        } catch (error) {
+          estado.textContent = error.message ||
+            "No se pudo actualizar el inventario.";
+        }
+      }
+    );
+
+    document.getElementById("salir").addEventListener(
+      "click", function () {
+        auth.signOut();
+      }
+    );
+
+    window.addEventListener("online", function () {
+      if (auth.currentUser &&
+          auth.currentUser.email.toLowerCase() === CUENTA_AUTORIZADA) {
+        leerInventario().catch(function (error) {
+          estado.textContent = error.message;
+        });
+      }
+    });
+
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("./service-worker.js")
+          .catch(function (error) {
+            console.warn("No se pudo registrar el modo offline.", error);
+          });
+      });
+    }
+  </script>
+</body>
+</html>
