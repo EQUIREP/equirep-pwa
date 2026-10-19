@@ -12,84 +12,108 @@
     :root { color-scheme: light; }
     body {
       font-family: Arial, sans-serif;
-      max-width: 1000px;
-      margin: 18px auto;
-      padding: 0 14px;
-      color: #222;
-      background: #fff;
-      line-height: 1.4;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 16px 24px;
+      color: #202124;
+      background: #f3f4f6;
+      line-height: 1.45;
       -webkit-text-size-adjust: 100%;
     }
-    h1, h2 { color: #b00020; line-height: 1.2; }
-    h1 { font-size: clamp(1.35rem, 4vw, 1.9rem); margin: 0 0 8px; }
-    h2 { font-size: 1.2rem; margin: 0 0 10px; }
-    p { margin: 8px 0 12px; }
-    label { display: block; font-weight: 600; margin-top: 8px; }
-    input, button {
-      font: inherit;
-      padding: 10px 12px;
-      border-radius: 8px;
+    h1, h2 { line-height: 1.2; }
+    h1 {
+      color: #fff;
+      background: #202124;
+      margin: 0 -16px 18px;
+      padding: 20px 18px;
+      font-size: clamp(1.25rem, 3.5vw, 1.75rem);
+      border-bottom: 4px solid #b00020;
     }
+    h2 { color: #b00020; font-size: 1.2rem; margin: 0 0 10px; }
+    p { margin: 8px 0 12px; }
+    label { display: block; font-weight: 700; margin-top: 10px; }
+    input, button { font: inherit; border-radius: 9px; }
     input {
-      width: 100%;
-      min-width: 0;
-      border: 1px solid #bbb;
-      margin: 5px 0 10px;
-      background: #fff;
+      width: 100%; min-width: 0; border: 1px solid #c5c7ca;
+      padding: 12px 13px; margin: 6px 0 10px; background: #fff;
     }
     input:focus { outline: 2px solid #b00020; outline-offset: 1px; }
     button {
-      border: 0;
-      background: #b00020;
-      color: white;
-      cursor: pointer;
-      margin: 0;
-      min-height: 40px;
-      font-size: .94rem;
+      border: 0; background: #b00020; color: #fff; cursor: pointer;
+      margin: 0; min-height: 40px; padding: 10px 13px;
+      font-size: .92rem; font-weight: 700; transition: opacity .15s ease;
     }
+    button:hover { opacity: .9; }
     button:disabled { opacity: .6; cursor: wait; }
-    .panel, .estado, .producto {
-      padding: 13px;
-      margin: 12px 0;
-      border-radius: 10px;
-      background: #f4f4f4;
-      overflow-wrap: anywhere;
+    .panel, .estado {
+      padding: 14px; margin: 12px 0; border-radius: 12px;
+      background: #fff; border: 1px solid #e0e1e3; overflow-wrap: anywhere;
     }
+    .acciones { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+    .estado { background: #fff; border-left: 4px solid #b00020; }
     .producto {
-      background: #fff;
-      border: 1px solid #ddd;
-      margin: 10px 0;
+      background: #fff; border: 1px solid #dedfe2; border-radius: 14px;
+      padding: 16px; margin: 12px 0; overflow-wrap: anywhere;
+      box-shadow: 0 2px 7px rgba(0,0,0,.045);
     }
-    .producto h3 { margin: 0 0 7px; font-size: 1rem; line-height: 1.35; }
+    .producto-cabecera {
+      display: flex; align-items: flex-start; gap: 10px;
+      justify-content: space-between; margin-bottom: 8px;
+    }
+    .codigo {
+      color: #b00020; font-weight: 800; font-size: 1.08rem;
+      flex: 0 0 auto;
+    }
+    .producto h3 {
+      margin: 0 0 10px; font-size: 1.02rem; line-height: 1.42;
+      color: #202124; font-weight: 700;
+    }
+    .datos-producto {
+      display: grid; gap: 4px; color: #4b4f54; font-size: .92rem;
+    }
+    .dato-etiqueta { color: #202124; font-weight: 700; }
     .precios {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 10px;
+      display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px; margin-top: 14px;
     }
     .precio {
-      padding: 10px;
-      background: #f5f5f5;
-      border-radius: 8px;
-      flex: 1 1 190px;
-      min-width: 0;
-      overflow-wrap: anywhere;
+      padding: 13px; background: #f0f1f3; border-radius: 11px;
+      border-top: 3px solid #b00020; min-width: 0; overflow-wrap: anywhere;
     }
-    .precio strong { display: block; margin: 3px 0 7px; }
-    .secundario { color: #555; margin-top: 8px; font-size: .9rem; }
+    .precio.distribuidor { border-top-color: #33383f; }
+    .precio-titulo {
+      font-size: .85rem; color: #565b61; font-weight: 700;
+      letter-spacing: .02em; margin-bottom: 5px;
+    }
+    .precio-valor {
+      display: block; font-size: clamp(1.15rem, 3vw, 1.45rem);
+      line-height: 1.25; color: #b00020; margin: 4px 0 12px;
+      font-weight: 800;
+    }
+    .distribuidor .precio-valor { color: #202124; }
+    .precio button { width: 100%; min-height: 40px; }
+    .distribuidor button { background: #292d32; }
+    .secundario {
+      color: #62666b; margin-top: 13px; font-size: .9rem;
+      line-height: 1.5; white-space: pre-wrap;
+    }
     .oculto { display: none !important; }
-    .acciones { display: flex; flex-wrap: wrap; gap: 7px; }
-    .nota { color: #555; font-size: .85rem; }
-    @media (max-width: 520px) {
-      body { margin: 12px auto; padding: 0 10px; }
-      h1 { font-size: 1.3rem; }
-      .panel, .estado, .producto { padding: 11px; margin: 9px 0; }
+    .nota { color: #62666b; font-size: .85rem; }
+    @media (max-width: 600px) {
+      body { padding: 0 10px 18px; }
+      h1 { margin: 0 -10px 14px; padding: 16px 12px; }
+      .panel, .estado { padding: 12px; }
+      .producto { padding: 12px; border-radius: 12px; }
+      .precios { grid-template-columns: 1fr; gap: 8px; margin-top: 11px; }
+      .precio { padding: 11px; }
+      .precio-valor { font-size: 1.25rem; }
       .acciones { display: grid; grid-template-columns: 1fr 1fr; }
-      .acciones button { width: 100%; padding: 9px 6px; font-size: .88rem; }
-      .precios { gap: 7px; }
-      .precio { flex-basis: 100%; padding: 9px; }
-      .precio button { min-height: 36px; padding: 8px 10px; }
-      input { padding: 11px; }
+      .acciones button { width: 100%; padding: 9px 7px; font-size: .86rem; }
+      .producto h3 { font-size: .98rem; }
+      .codigo { font-size: 1rem; }
+    }
+    @media (max-width: 360px) {
+      .acciones { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -290,23 +314,27 @@
       resultados.innerHTML = visibles.map(function (producto, indice) {
         return `
           <article class="producto">
-            <h3>${escaparHTML(producto.codigo)} - ${escaparHTML(producto.nombre)}</h3>
-            <div>Referencia: ${escaparHTML(producto.referencia)}</div>
-            <div>Disponible: ${escaparHTML(producto.disponible)}
-              ${escaparHTML(producto.unidad)}</div>
+            <div class="producto-cabecera">
+              <span class="codigo">${escaparHTML(producto.codigo)}</span>
+            </div>
+            <h3>${escaparHTML(producto.nombre)}</h3>
+            <div class="datos-producto">
+              <div><span class="dato-etiqueta">Referencia:</span> ${escaparHTML(producto.referencia)}</div>
+              <div><span class="dato-etiqueta">Stock:</span> ${escaparHTML(producto.disponible)} ${escaparHTML(producto.unidad)}</div>
+            </div>
             <div class="precios">
               <div class="precio">
-                <div>PVP / COVINOC</div>
-                <strong>${escaparHTML(producto.precio1)}</strong>
+                <div class="precio-titulo">PVP / COVINOC</div>
+                <strong class="precio-valor">${escaparHTML(producto.precio1)}</strong>
                 <button data-copiar="${indice}" data-campo="precio1">
-                  PVP / COVINOC
+                  <span aria-hidden="true">📋 </span>PVP / COVINOC
                 </button>
               </div>
-              <div class="precio">
-                <div>DISTRIBUIDOR</div>
-                <strong>${escaparHTML(producto.precio2)}</strong>
+              <div class="precio distribuidor">
+                <div class="precio-titulo">DISTRIBUIDOR</div>
+                <strong class="precio-valor">${escaparHTML(producto.precio2)}</strong>
                 <button data-copiar="${indice}" data-campo="precio2">
-                  DISTRIBUIDOR
+                  <span aria-hidden="true">📋 </span>DISTRIBUIDOR
                 </button>
               </div>
             </div>
