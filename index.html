@@ -81,9 +81,6 @@
     .precio button { width:100%; min-height:44px; font-size:.95rem; }
     .distribuidor button { background:#292d32; }
     .secundario { color:#62666b; margin-top:13px; font-size:.92rem; line-height:1.5; white-space:pre-wrap; }
-    .datos-inferiores { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px; margin-top:13px; color:#62666b; font-size:.92rem; line-height:1.4; }
-    .dato-inferior { min-width:0; overflow-wrap:anywhere; }
-    .dato-inferior.derecha { text-align:right; }
     .oculto { display:none !important; }
     .nota { color:#62666b; font-size:.85rem; }
     .fondo-menu { position:fixed; inset:0; z-index:20; background:rgba(20,22,25,.38); }
@@ -568,20 +565,7 @@
                 </button>
               </div>
             </div>
-            ${(() => {
-              const descripcion = String(producto.descripcion || "").trim();
-              const matchEmbalaje = descripcion.match(/\[[^\]]+\]/);
-              if (!matchEmbalaje) {
-                return descripcion ? `<div class="secundario">${escaparHTML(descripcion)}</div>` : "";
-              }
-              const embalaje = matchEmbalaje[0];
-              const rp = descripcion.slice(matchEmbalaje.index + embalaje.length)
-                .replace(/^[\s\-–—|=]+/, "").trim();
-              return `<div class="datos-inferiores">
-                <div class="dato-inferior"><span class="dato-etiqueta">EMBALAJE:</span> ${escaparHTML(embalaje)}</div>
-                <div class="dato-inferior derecha"><span class="dato-etiqueta">RP:</span> ${escaparHTML(rp || "—")}</div>
-              </div>`;
-            })()}
+            <div class="secundario">${escaparHTML(producto.descripcion)}</div>
           </article>`;
       }).join("");
 
@@ -745,7 +729,7 @@
         "",
         "🔢 *CÓDIGO:* " + codigoProducto,
         "📦 *NOMBRE:* " + nombreProducto,
-        "📊 *STOCK DISPONIBLE:* " + stockProducto,
+        "📊 *STOCK:* " + stockProducto,
         (esPvp ? "💰 *" : "🤝 *") + etiquetaPrecio + ":* " + valorPrecio,
         "",
         "_*Precios con impuesto incluido.*_"
