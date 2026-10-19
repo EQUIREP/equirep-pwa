@@ -127,8 +127,15 @@
       border-bottom: 1px solid rgba(210,212,216,.85);
     }
     #buscadorFijo label { margin-top: 0; font-size: .98rem; }
-    #buscadorFijo input { margin-bottom: 4px; }
-    #buscadorFijo .nota { margin: 4px 0 0; }
+    .campo-busqueda { position:relative; }
+    #busqueda { padding-right:48px; margin-bottom:0; }
+    #limpiarBusqueda {
+      position:absolute; right:8px; top:50%; transform:translateY(-50%);
+      width:34px; height:34px; min-height:34px; padding:0; border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      background:#e9eaec; color:#50545a; font-size:1.35rem; line-height:1;
+    }
+    #limpiarBusqueda:focus-visible { outline:2px solid #b00020; outline-offset:2px; }
     @media (max-width:600px) {
       .barra-superior { margin-bottom: 10px; }
       #buscadorFijo { padding-top: 6px; padding-bottom: 8px; }
@@ -241,16 +248,14 @@
   </section>
 
   <section id="inventario" class="oculto">
-    <div class="cabecera-modulo">
-      <button id="volverDesdeInventario" class="volver-inicio" type="button">← Menú principal</button>
-      <h2 style="margin:0">Inventario</h2>
-    </div>
     <div id="estado" class="estado oculto" role="status" aria-live="polite"></div>
     <div id="buscadorFijo">
       <label for="busqueda">Buscar por código, nombre, referencia o descripción</label>
-      <input id="busqueda" type="search" autocomplete="off"
-        placeholder="Ej.: GD10035, kit piston 40mm, guadaña piston">
-      <p class="nota">Puedes escribir varias palabras. No importa el uso de mayúsculas ni las tildes.</p>
+      <div class="campo-busqueda">
+        <input id="busqueda" type="search" autocomplete="off"
+          placeholder="Ej.: GD10035, kit piston 40mm, guadaña piston">
+        <button id="limpiarBusqueda" type="button" aria-label="Borrar búsqueda" title="Borrar búsqueda" class="oculto">×</button>
+      </div>
     </div>
     <div id="resultados"></div>
   </section>
@@ -681,7 +686,21 @@
       if (contenedor && !contenedor.contains(evento.target)) ocultarMenuSesion();
     });
 
-    busqueda.addEventListener("input", mostrarResultados);
+    const botonLimpiarBusqueda = document.getElementById("limpiarBusqueda");
+    function actualizarBotonLimpiarBusqueda() {
+      botonLimpiarBusqueda.classList.toggle("oculto", !busqueda.value);
+    }
+    botonLimpiarBusqueda.addEventListener("click", function () {
+      busqueda.value = "";
+      actualizarBotonLimpiarBusqueda();
+      mostrarResultados();
+      busqueda.focus();
+    });
+    busqueda.addEventListener("input", function () {
+      actualizarBotonLimpiarBusqueda();
+      mostrarResultados();
+    });
+    actualizarBotonLimpiarBusqueda();
 
     resultados.addEventListener("click", async function (evento) {
       const boton = evento.target.closest("[data-copiar]");
