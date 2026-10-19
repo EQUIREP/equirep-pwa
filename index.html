@@ -139,6 +139,9 @@
 
   <script>
     const CUENTA_AUTORIZADA = "equirepdelacosta@gmail.com";
+    // Marca local creada únicamente después de validar una sesión real de Firebase.
+    // Permite entrar a la copia local cuando el dispositivo está sin conexión.
+    const CLAVE_ACCESO_OFFLINE = "equirep_offline_autorizado_v1";
     const login = document.getElementById("login");
     const seccionInventario = document.getElementById("inventario");
     const estadoLogin = document.getElementById("estadoLogin");
@@ -148,6 +151,30 @@
     const botonEntrar = document.getElementById("entrar");
     let productos = [];
     let resultadosActuales = [];
+
+    function tieneAutorizacionOffline() {
+      try {
+        return localStorage.getItem(CLAVE_ACCESO_OFFLINE) === CUENTA_AUTORIZADA;
+      } catch (error) {
+        return false;
+      }
+    }
+
+    function guardarAutorizacionOffline() {
+      try {
+        localStorage.setItem(CLAVE_ACCESO_OFFLINE, CUENTA_AUTORIZADA);
+      } catch (error) {
+        console.warn("No se pudo guardar la autorización local.", error);
+      }
+    }
+
+    function borrarAutorizacionOffline() {
+      try {
+        localStorage.removeItem(CLAVE_ACCESO_OFFLINE);
+      } catch (error) {
+        console.warn("No se pudo borrar la autorización local.", error);
+      }
+    }
 
     if (!window.EQUIREP_CONFIG ||
         !window.EQUIREP_CONFIG.firebase) {
@@ -325,18 +352,41 @@
 
     auth.onAuthStateChanged(async function (usuario) {
       if (!usuario) {
+        // Sin conexión, permite usar la copia local solo si antes se validó
+        // correctamente la cuenta autorizada en Firebase en este dispositivo.
+        if (!navigator.onLine && tieneAutorizacionOffline()) {
+          login.classList.add("oculto");
+          seccionInventario.classList.remove("oculto");
+          estado.textContent = "Abriendo inventario guardado en este dispositivo...";
+          try {
+            await leerInventario();
+            estado.textContent = "Modo sin conexión: inventario guardado en este dispositivo. " +
+              productos.length + " productos disponibles. Los datos pueden estar desactualizados.";
+          } catch (error) {
+            estado.textContent = error.message ||
+              "No se pudo abrir la copia local del inventario.";
+          }
+          return;
+        }
+
+        // Si hay conexión y Firebase no reconoce una sesión válida, no conservamos
+        // el permiso local para futuras aperturas sin conexión.
+        if (navigator.onLine) borrarAutorizacionOffline();
         login.classList.remove("oculto");
         seccionInventario.classList.add("oculto");
         return;
       }
 
       if ((usuario.email || "").toLowerCase() !== CUENTA_AUTORIZADA) {
+        borrarAutorizacionOffline();
         await auth.signOut();
         estadoLogin.textContent =
           "Acceso denegado: esta cuenta no está autorizada.";
         return;
       }
 
+      // Solo se guarda después de que Firebase confirma la cuenta autorizada.
+      guardarAutorizacionOffline();
       login.classList.add("oculto");
       seccionInventario.classList.remove("oculto");
       estado.textContent = "Cargando inventario...";
@@ -382,6 +432,8 @@
 
     document.getElementById("salir").addEventListener(
       "click", function () {
+        // Cerrar sesión también elimina el permiso de acceso offline.
+        borrarAutorizacionOffline();
         auth.signOut();
       }
     );
