@@ -136,6 +136,7 @@
       background:#e9eaec; color:#50545a; font-size:1.35rem; line-height:1;
     }
     #limpiarBusqueda:focus-visible { outline:2px solid #b00020; outline-offset:2px; }
+    #limpiarBusqueda:not(.oculto) { display:flex !important; }
     @media (max-width:600px) {
       .barra-superior { margin-bottom: 10px; }
       #buscadorFijo { padding-top: 6px; padding-bottom: 8px; }
@@ -672,7 +673,8 @@
     document.getElementById("irClientes").addEventListener("click", function () { mostrarSeccion("clientes"); });
     document.getElementById("tarjetaInventario").addEventListener("click", function () { mostrarSeccion("inventario"); });
     document.getElementById("tarjetaClientes").addEventListener("click", function () { mostrarSeccion("clientes"); });
-    document.getElementById("volverDesdeInventario").addEventListener("click", function () { mostrarSeccion("inicio"); });
+    const volverDesdeInventario = document.getElementById("volverDesdeInventario");
+    if (volverDesdeInventario) volverDesdeInventario.addEventListener("click", function () { mostrarSeccion("inicio"); });
     document.getElementById("volverDesdeClientes").addEventListener("click", function () { mostrarSeccion("inicio"); });
     document.addEventListener("keydown", function (evento) {
       if (evento.key === "Escape") {
