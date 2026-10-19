@@ -296,17 +296,17 @@
               ${escaparHTML(producto.unidad)}</div>
             <div class="precios">
               <div class="precio">
-                <div>Precio 1</div>
+                <div>PVP / COVINOC</div>
                 <strong>${escaparHTML(producto.precio1)}</strong>
                 <button data-copiar="${indice}" data-campo="precio1">
-                  Copiar precio 1
+                  PVP / COVINOC
                 </button>
               </div>
               <div class="precio">
-                <div>Precio 2</div>
+                <div>DISTRIBUIDOR</div>
                 <strong>${escaparHTML(producto.precio2)}</strong>
                 <button data-copiar="${indice}" data-campo="precio2">
-                  Copiar precio 2
+                  DISTRIBUIDOR
                 </button>
               </div>
             </div>
@@ -407,14 +407,35 @@
       const producto = resultadosActuales[Number(boton.dataset.copiar)];
       if (!producto) return;
 
+      const esPvp = boton.dataset.campo === "precio1";
+      const etiquetaPrecio = esPvp ? "PVP / COVINOC" : "DISTRIBUIDOR";
+      const valorPrecio = String(producto[boton.dataset.campo] || "");
+      const nombreProducto = String(producto.nombre || "");
+      const codigoProducto = String(producto.codigo || "");
+      const stockProducto = [producto.disponible, producto.unidad]
+        .filter(function(valor) {
+          return valor !== undefined && valor !== null && String(valor).trim() !== "";
+        }).join(" ");
+
+      // Los asteriscos y guiones bajos permiten conservar el formato
+      // al pegar el texto en WhatsApp y otros mensajeros compatibles.
+      const textoCopiado = [
+        "🏢 *EQUIREP*",
+        "",
+        "🔢 *CÓDIGO:* " + codigoProducto,
+        "📦 *NOMBRE:* " + nombreProducto,
+        "📊 *STOCK:* " + stockProducto,
+        (esPvp ? "💰 *" : "🤝 *") + etiquetaPrecio + ":* " + valorPrecio,
+        "",
+        "_*Precios con impuesto incluido.*_"
+      ].join("\n");
+
       try {
-        await navigator.clipboard.writeText(
-          String(producto[boton.dataset.campo] || "")
-        );
-        estado.textContent = "Precio copiado.";
+        await navigator.clipboard.writeText(textoCopiado);
+        estado.textContent = "Información de " + etiquetaPrecio + " copiada.";
       } catch (error) {
         estado.textContent =
-          "No se pudo copiar automáticamente. Selecciona el precio.";
+          "No se pudo copiar automáticamente. Intenta de nuevo o selecciona la información.";
       }
     });
 
